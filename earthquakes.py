@@ -4,10 +4,11 @@
 # This is external library that you may need to install first.
 import requests
 
+import requests
+import json  # 用于解析 JSON 数据
 
 def get_data():
-    # With requests, we can ask the web service for the data.
-    # Can you understand the parameters we are passing here?
+    # 从 USGS 地震数据 API 获取地震信息
     response = requests.get(
         "http://earthquake.usgs.gov/fdsnws/event/1/query.geojson",
         params={
@@ -18,44 +19,47 @@ def get_data():
             "minlongitude": "-9.756",
             "minmagnitude": "1",
             "endtime": "2018-10-11",
-            "orderby": "time-asc"}
+            "orderby": "time-asc"
+        }
     )
 
-    # The response we get back is an object with several fields.
-    # The actual contents we care about are in its text field:
-    text = response.text
-    # To understand the structure of this text, you may want to save it
-    # to a file and open it in VS Code or a browser.
-    # See the README file for more information.
-    ...
-
-    # We need to interpret the text to get values that we can work with.
-    # What format is the text in? How can we load the values?
-    return ...
+    # 将返回的内容转为 JSON 对象
+    data = response.json()
+    return data
 
 def count_earthquakes(data):
-    """Get the total number of earthquakes in the response."""
-    return ...
-
+    """获取响应中的地震总数"""
+    return len(data['features'])
 
 def get_magnitude(earthquake):
-    """Retrive the magnitude of an earthquake item."""
-    return ...
-
+    """获取单个地震事件的震级"""
+    return earthquake['properties']['mag']
 
 def get_location(earthquake):
-    """Retrieve the latitude and longitude of an earthquake item."""
-    # There are three coordinates, but we don't care about the third (altitude)
-    return ...
-
+    """获取单个地震事件的经纬度"""
+    # 这里返回的是经度和纬度
+    return earthquake['geometry']['coordinates'][:2]
 
 def get_maximum(data):
-    """Get the magnitude and location of the strongest earthquake in the data."""
-    ...
+    """找到数据中所有最强的地震事件，返回这些事件的震级和位置"""
+    
+    # 先找到最大的震级
+    max_magnitude = max(get_magnitude(eq) for eq in data['features'])
+    
+    # 找到所有震级等于最大震级的地震事件
+    max_earthquakes = [
+        eq for eq in data['features'] if get_magnitude(eq) == max_magnitude
+    ]
+    
+    # 获取这些地震的位置信息
+    max_locations = [get_location(eq) for eq in max_earthquakes]
+    
+    return max_magnitude, max_locations
 
 
-# With all the above functions defined, we can now call them and get the result
+
+# 现在可以调用上面的函数并得到结果
 data = get_data()
-print(f"Loaded {count_earthquakes(data)}")
+print(f"Loaded {count_earthquakes(data)} earthquakes.")
 max_magnitude, max_location = get_maximum(data)
-print(f"The strongest earthquake was at {max_location} with magnitude {max_magnitude}")
+print(f"The strongest earthquake was at {max_location} with magnitude {max_magnitude}.")
