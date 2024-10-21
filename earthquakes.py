@@ -94,3 +94,4 @@ yearly_counts, yearly_avg_magnitude = calculate_annual_stats(data)
 # Plot two plots
 plot_earthquake_frequency(yearly_counts)
 plot_average_magnitude(yearly_avg_magnitude)
+### try  branch 
